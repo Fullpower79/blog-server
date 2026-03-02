@@ -16,6 +16,12 @@ require('./config/cloudinary');
 // we don't need to serve local uploads any more; images come from Cloudinary
 app.use('/api/blogs', blogRoutes);
 
+// basic error handler to surface errors as JSON (helps for multer/cloudinary runtime errors)
+app.use((err, req, res, next) => {
+  console.error('Unhandled error:', err);
+  res.status(500).json({ error: err.message || err });
+});
+
 mongoose.connect(process.env.MONGO_URI)
   .then(() => console.log('MongoDB connected'))
   .catch(err => console.error(err));

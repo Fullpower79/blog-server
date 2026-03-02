@@ -19,25 +19,36 @@ const upload = multer({ storage });
 
 // POST /api/blogs
 // expects multipart/form-data with an optional `image` field
-router.post('/', upload.single('image'), async (req, res) => {
-  try {
-    const { title, content, tags } = req.body;
+// Use the upload middleware manually so upload errors are returned as JSON
+router.post('/', (req, res) => {
+  upload.single('image')(req, res, async (uploadErr) => {
+    if (uploadErr) {
+      console.error('Upload error:', uploadErr);
+      return res.status(400).json({ error: uploadErr.message || uploadErr });
+    }
 
-    // multer-storage-cloudinary sets `path` to the uploaded file's URL
-    const imageUrl = req.file ? req.file.path : null;
+    try {
+      const { title, content, tags } = req.body;
 
-    const blog = new Blog({
-      title,
-      content,
-      imageUrl,
-      tags: tags ? tags.split(',') : []
-    });
+      // multer-storage-cloudinary sets `path` to the uploaded file's URL
+      const imageUrl = req.file ? req.file.path : null;
 
-    await blog.save();
-    res.status(201).json(blog);
-  } catch (err) {
-    res.status(500).json(err);
-  }
+      console.log('Creating blog:', { title, hasImage: !!imageUrl });
+
+      const blog = new Blog({
+        title,
+        content,
+        imageUrl,
+        tags: tags ? tags.split(',') : []
+      });
+
+      await blog.save();
+      res.status(201).json(blog);
+    } catch (err) {
+      console.error('POST /api/blogs error:', err);
+      res.status(500).json({ error: err.message || err });
+    }
+  });
 });
 
 router.get('/', async (req, res) => {
