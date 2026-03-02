@@ -9,7 +9,11 @@ const app = express();
 
 app.use(cors({ origin: '*'}));
 app.use(express.json());
-app.use('/uploads', express.static('uploads'));
+
+// load cloudinary configuration (must come after dotenv)
+require('./config/cloudinary');
+
+// we don't need to serve local uploads any more; images come from Cloudinary
 app.use('/api/blogs', blogRoutes);
 
 mongoose.connect(process.env.MONGO_URI)
