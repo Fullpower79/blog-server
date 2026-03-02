@@ -16,6 +16,11 @@ require('./config/cloudinary');
 // we don't need to serve local uploads any more; images come from Cloudinary
 app.use('/api/blogs', blogRoutes);
 
+// return JSON 404 for any /api/* routes that weren't matched
+app.use('/api', (req, res) => {
+  res.status(404).json({ error: 'API route not found' });
+});
+
 // basic error handler to surface errors as JSON (helps for multer/cloudinary runtime errors)
 app.use((err, req, res, next) => {
   console.error('Unhandled error:', err);
